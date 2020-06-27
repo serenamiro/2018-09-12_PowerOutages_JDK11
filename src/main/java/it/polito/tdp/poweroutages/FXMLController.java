@@ -1,9 +1,13 @@
 package it.polito.tdp.poweroutages;
 
 import java.net.URL;
+import java.util.Collections;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.poweroutages.model.Adiacenza;
 import it.polito.tdp.poweroutages.model.Model;
+import it.polito.tdp.poweroutages.model.Nerc;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -28,7 +32,7 @@ public class FXMLController {
     private Button btnCreaGrafo;
 
     @FXML
-    private ComboBox<?> cmbBoxNerc;
+    private ComboBox<Nerc> cmbBoxNerc;
 
     @FXML
     private Button btnVisualizzaVicini;
@@ -41,17 +45,60 @@ public class FXMLController {
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
-
+    	txtResult.clear();
+    	txtResult.appendText("Creazione grafo...\n\n");
+    	try {
+    		model.creaGrafo();
+    		txtResult.appendText("Grafo creato\n");
+    		cmbBoxNerc.getItems().addAll(this.model.grafo.vertexSet());
+    		txtResult.appendText("vertici: "+model.nVertici()+"\n");
+    		txtResult.appendText("archi: "+model.nArchi()+"\n");
+    	} catch (NumberFormatException e) {
+    		txtResult.appendText("Inserire un numero valido.\n");
+    	}
     }
 
     @FXML
     void doSimula(ActionEvent event) {
-
+    	txtResult.clear();
+    	Nerc n = cmbBoxNerc.getValue();
+    	if(n==null) {
+    		txtResult.appendText("Selezionare un Nerc per continuare.\n");
+    		return;
+    	}
+    	try {
+    		Integer k = Integer.parseInt(txtK.getText());
+    		model.doSimulazione(k);
+    		txtResult.appendText("SIMULAZIONE EFFETTUATA:\n");
+    		txtResult.appendText("Numero catastrofi: "+model.getCatastrofi());
+    		txtResult.appendText("NERC ID - BONUS:\n");
+    		for(Nerc nerc : this.model.getBonus().keySet()) {
+    			txtResult.appendText(nerc.getId()+" - "+this.model.getBonus().get(nerc)+"\n");
+    		}
+    	} catch(NumberFormatException e) {
+    		e.printStackTrace();
+    		txtResult.appendText("Inserire un numero valido.\n");
+    	}
     }
 
     @FXML
     void doVisualizzaVicini(ActionEvent event) {
-
+    	txtResult.clear();
+    	Nerc n = cmbBoxNerc.getValue();
+    	if(n==null) {
+    		txtResult.appendText("Selezionare un Nerc per continuare.\n");
+    		return;
+    	}
+    	List<Adiacenza> vicini = model.getVicini(n);
+    	if(vicini!=null) {
+    		txtResult.appendText("VICINI DEL NERC SELEZIONATO:\n");
+    		Collections.sort(vicini);
+    		for(Adiacenza a : vicini) {
+    			txtResult.appendText(a.toString()+"\n");
+    		}
+    	} else {
+    		txtResult.appendText("ERRORE.\n");
+    	}
     }
 
     @FXML
